@@ -1,0 +1,43 @@
+new 
+domain extent -1.5 1.5
+;*****************************************************************************************************************
+;1-«Ω…˙≥…°£
+wall generate ...
+    id 1 ...
+    name box1 ...
+    box 0.0,0.8 -0.65,0.65 onewall
+;*****************************************************************************************************************
+;2-ø≈¡£…˙≥…
+ball distribute porosity 0.17 radius 1.6e-3 2.656e-3 box 0.0,0.8 -0.65,0.65 ;ø≈¡£∞Îæ∂2-2.4mm,ø’œ∂¬ 0.2
+;*****************************************************************************************************************
+;3-ø≈¡£ Ù–‘
+ball attribute density 1800 damp 0.7;ø≈¡£√‹∂»2740kg/m3
+;*****************************************************************************************************************
+;4-ø≈¡£º‰Ω”¥• Ù–‘
+ball group meiyan
+
+cmat default model linearpbond method  deformability emod 2e9 krat 1 prop fric 0.06
+
+;******************************************************************************************************************
+;5-Calm the system
+set gravity 9.81
+cycle 1000 
+; Solve the system to a target limit (here the average force ratio)
+; Use density scaling to quickly reach equilibrium
+set timestep scale
+set timestep auto
+cycle 10000 calm 100
+cmat add 1 model linearpbond  ...
+           method deformability emod 3e9 krat 1.1 ...
+           property dp_nratio 0.5 fric 0.6   ...
+           range contact type ball-ball group meiyan
+
+cmat add 3 model linear  ...
+           method deformability emod 6e9 krat 1.1 ...
+           property dp_nratio 0.5 fric 0.6  ...
+           range contact type ball-facet
+cmat apply
+cyc 20000 
+calm
+save 1_ball_create
+;*****************************************************************************************************************

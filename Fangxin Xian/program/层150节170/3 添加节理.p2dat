@@ -1,0 +1,100 @@
+restor 2_delete_ball
+
+
+wall delete walls range id 3
+
+contact model linearpbond range contact type 'ball-ball'
+
+contact method deformability emod 3e9 krat 1.1 ...
+        pb_deformability emod 3e9 krat 1.1 ...
+        range contact model linearpbond     
+contact property fric 0.6 dp_nratio 0.5  ...
+        pb_ten 52e6 pb_coh 28e6 pb_fa 30.0 pb_rmul 0.5 ...
+        range contact model linearpbond 
+
+contact method bond gap 1e-6
+
+define delete_floaters
+  loop foreach local ball ball.list
+    contactmap=ball.contactmap(ball)
+    size=map.size(contactmap)
+    if size<=1 then
+      ball.group(ball)='floaters'
+      floaters_num=floaters_num+1
+    endif
+  endloop
+  command
+    ball delete  range group floaters
+    cycle 100 calm 2
+  endcommand
+  loop while floaters_num # 0
+    floaters_num=0
+    loop foreach local bp ball.list
+      local size=0
+      contactmap=ball.contactmap(bp)
+      size=map.size(contactmap)
+      if size<=1 then
+        ball.group(bp)='floaters'
+        floaters_num=floaters_num+1
+      endif
+    endloop
+    command
+      ball delete  range group floaters
+      cycle 100 calm 2
+      ball group floaters remove
+    endcommand 
+  endloop
+end
+@delete_floaters
+
+contact model linearpbond range contact type 'ball-ball'
+
+contact method deformability emod 3e9 krat 1.1 ...
+        pb_deformability emod 3e9 krat 1.1 ...
+        range contact model linearpbond     
+contact property fric 0.6 dp_nratio 0.5  ...
+        pb_ten 52e6 pb_coh 28e6 pb_fa 30.0 pb_rmul 0.5 ...
+        range contact model linearpbond 
+
+contact method bond gap 1e-6
+
+; Add single joint with dip of   degrees
+; The default center location is 
+;A-B C-D E-F G-H I-G k-L M-N
+dfn addfracture dip 90 size 0.177.92 position 0.17 0.5610398
+dfn addfracture dip 90 size 275.57E-3 position 340E-3 512.2152E-3
+dfn addfracture dip 90 size 566.356e-3 position 510e-3 366.8219e-3
+dfn addfracture dip 90 size 1300e-3 position 680e-3 0e-3
+;dfn addfracture dip 90 size 575.9672435e-3 position 659.51e-3  219.1e-3
+;----------------------------------------------------------------------------------
+
+dfn addfracture dip 90 size 168.561e-3 position 170e-3 -565.7196e-3
+dfn addfracture dip 90 size 257.859e-3 position 340e-3 -521.0703e-3
+dfn addfracture dip 90 size 542.371e-3 position 510e-3 -378.8147e-3
+
+dfn addfracture dip 0 size 0.8 position 0.4 0.6
+dfn addfracture dip 0 size 575.628e-3 position 512.1862e-3 0.45
+dfn addfracture dip 0 size 388.71e-3 position 605.6452e-3 300e-3
+dfn addfracture dip 0 size 307.655e-3 position 646.1726e-3 0.15
+dfn addfracture dip 0 size 280.917e-3 position 659.5414e-3 0
+dfn addfracture dip 0 size 300.251e-3 position 649.8743e-3 -0.15
+dfn addfracture dip 0 size 373.062e-3 position 613.4690e-3 -0.30
+dfn addfracture dip 0 size 549.277e-3 position 525.3617e-3 -0.45
+dfn addfracture dip 0 size 0.8 position 0.4 -0.6
+
+dfn property sj_kn 4e10 sj_ks 4e10 sj_fric 0.2 sj_coh 0 sj_ten 0 sj_fa 12 sj_large 1
+
+; Apply smoothjoint contact model to contacts intercepted by fracture
+dfn model name smoothjoint install dist 0.0005
+
+ball attribute displacement multiply 0.0
+; Set the linear force to 0.0 and force a reset of the linear contact forces. 
+contact property lin_force 0.0 0.0   lin_mode 1
+
+ball attribute contactforce multiply 0.0 
+;设定速度为0 旋转速度固定为0  防止试样转动  因为线性黏结模型不阻止转动，所以试样转动。平行黏结模型阻止转动，所以上试样不转动
+ball attribute velocity multiply  0.0  spin multiply 0.0
+
+;dfn model name smoothjoint activate
+
+save 3_contact_property 

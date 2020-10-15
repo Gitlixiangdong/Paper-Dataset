@@ -1,0 +1,47 @@
+restor 3_contact_property
+call fracture.p2fis
+@track_init
+geometry import fangzhenjiechi.dxf
+;pause key
+wall import ...
+     geometry fangzhenjiechi ...
+     clean ...
+     keepid ...
+     seed 10 ...
+     group jiechi ... 
+     id 10 ...
+     name jiechi ... 
+     nothrow 
+
+wall rotate  angle -45   range id 10
+wall attr position 0.011 0.43 range id 10
+;wall attr position 0.0 0.01 range id 2 
+pause key
+calm 
+
+wall attribute centrotation (0.076,0.0) range id 10
+;wall attribute spin -5.76 range id 10
+wall attribute spin -5.76 range id 10
+wall attribute xvel 0.07 range id 10
+
+define setup_wall
+  global wp_lun = wall.find(10) ; assume wall 1 is the top wall
+end
+
+@setup_wall
+========================================================
+define force_wall
+   whilestepping
+;由于wall.force.contact 得到的是向量，故采用一下方式计算。
+   force_x = wall.force.contact.x(wp_lun)
+   force_y = wall.force.contact.y(wp_lun)
+   force = math.sqrt(force_x^2+force_y^2)
+end
+
+set mech age 0.0
+history id 1 @force
+history id 2 mechanical solve time 
+history id 3 fish crk_tension
+history id 4 fish crk_shear
+
+solve time 2.725694 
